@@ -295,6 +295,16 @@ textarea{min-height:72px;resize:vertical}
 .track{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
 .track .fill{height:100%;background:var(--expense);border-radius:999px}
 .bar-row .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+.pies{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px}
+.pie-body{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.pie-svg{width:176px;height:176px;flex:none;display:block}
+.pie-svg path,.pie-svg circle.sl{stroke:var(--surface);stroke-width:2;stroke-linejoin:round;outline:none}
+.pie-svg path:hover,.pie-svg path:focus-visible,.pie-svg circle.sl:hover,.pie-svg circle.sl:focus-visible{opacity:.82}
+.pie-ctr,.pie-tot{pointer-events:none} .pie-ctr{font-size:11.5px;fill:var(--muted)} .pie-tot{font-size:13.5px;font-weight:700;fill:var(--ink);font-variant-numeric:tabular-nums}
+.pielg{list-style:none;margin:0;padding:0;flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:7px;font-size:13.5px}
+.pielg li{display:grid;grid-template-columns:10px minmax(0,1fr) auto 40px;gap:8px;align-items:center}
+.pielg i{width:10px;height:10px;border-radius:3px;display:block}
+.pielg .n{overflow-wrap:anywhere} .pielg .a{font-variant-numeric:tabular-nums;font-weight:600} .pielg .p{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 .chartbox{overflow-x:auto} .chartbox svg{display:block;width:100%;min-width:480px;height:auto}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
@@ -1591,6 +1601,45 @@ function trendSvg(data){
   });
   return s+'</svg>';
 }
+/* ---------- Pie: porsi kategori ---------- */
+/* Warna mengikuti kategori (bukan peringkat). Urutan = slot 3..8 palet tervalidasi; biru/oranye sengaja dilewati karena sudah berarti Pemasukan/Pengeluaran di grafik tren. */
+const PIE_COL={'Makan & minum':'#1baf7a','Transport':'#eda100','Tempat tinggal':'#e87ba4','Kuliah & buku':'#008300','Hiburan':'#6250d6','Kesehatan & olahraga':'#e34948',
+  'Kiriman orang tua':'#1baf7a','Beasiswa':'#eda100','Kerja paruh waktu':'#e87ba4'};
+const PIE_OTHER='#8f8d86';
+function catShares(tx,key,type){
+  const cats=type==='in'?INC_CATS:EXP_CATS, sum={}; let total=0;
+  tx.forEach(t=>{
+    if(!t||t.type!==type||monthKey(t.date)!==key) return;
+    const a=Number(t.amount); if(!isFinite(a)||a<=0) return;
+    const c=PIE_COL[t.cat]&&cats.indexOf(t.cat)>=0?t.cat:'Lainnya';
+    sum[c]=(sum[c]||0)+a; total+=a;
+  });
+  const items=Object.keys(sum).map(c=>({cat:c,amount:sum[c],color:c==='Lainnya'?PIE_OTHER:PIE_COL[c]}));
+  items.sort((a,b)=>(a.cat==='Lainnya')-(b.cat==='Lainnya')||b.amount-a.amount);
+  /* persen bulat dengan sisa terbesar, supaya jumlahnya tepat 100 */
+  let used=0; items.forEach(it=>{ const x=it.amount/total*100; it.pct=Math.floor(x); it.rem=x-it.pct; used+=it.pct; });
+  items.slice().sort((a,b)=>b.rem-a.rem).slice(0,Math.max(0,100-used)).forEach(it=>it.pct++);
+  return {items:items,total:total};
+}
+function pctTxt(it){ return it.pct===0?'<1%':it.pct+'%'; }
+function pieSvg(sh,title){
+  const cx=88,cy=88,R=82,r=54, pt=(rad,a)=>[(cx+rad*Math.cos(a)).toFixed(2),(cy+rad*Math.sin(a)).toFixed(2)];
+  let a0=-Math.PI/2, out='';
+  sh.items.forEach(it=>{
+    const tip=it.cat+' · '+rp(it.amount)+' ('+pctTxt(it)+')', att=' fill="'+it.color+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'"';
+    if(sh.items.length===1){ out+='<circle class="sl" cx="'+cx+'" cy="'+cy+'" r="'+((R+r)/2)+'" fill="none" stroke="'+it.color+'" stroke-width="'+(R-r)+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'"/>'; return; }
+    const a1=a0+it.amount/sh.total*Math.PI*2, big=(a1-a0)>Math.PI?1:0, o0=pt(R,a0), o1=pt(R,a1), i1=pt(r,a1), i0=pt(r,a0);
+    out+='<path d="M'+o0+' A'+R+' '+R+' 0 '+big+' 1 '+o1+' L'+i1+' A'+r+' '+r+' 0 '+big+' 0 '+i0+' Z"'+att+'/>';
+    a0=a1;
+  });
+  return '<svg class="pie-svg" viewBox="0 0 176 176" role="group" aria-label="'+esc(title)+'">'+out+'<text class="pie-ctr" x="88" y="83" text-anchor="middle">Total</text><text class="pie-tot" x="88" y="101" text-anchor="middle">'+esc(rp(sh.total))+'</text></svg>';
+}
+function pieCard(type,key){
+  const sh=catShares(S.tx,key,type), isIn=type==='in', title=isIn?'Porsi pemasukan':'Porsi pengeluaran';
+  if(!sh.items.length) return '<div class="card">'+h2b(title,'coin',isIn?'sky':'coral')+'<p class="empty">Belum ada '+(isIn?'pemasukan':'pengeluaran')+' bulan ini.</p></div>';
+  return '<div class="card">'+h2b(title,'coin',isIn?'sky':'coral')+'<div class="pie-body">'+pieSvg(sh,title+' '+monthLabel(key))+
+    '<ul class="pielg">'+sh.items.map(it=>'<li><i style="background:'+it.color+'"></i><span class="n">'+esc(it.cat)+'</span><span class="a">'+esc(rp(it.amount))+'</span><span class="p">'+esc(pctTxt(it))+'</span></li>').join('')+'</ul></div></div>';
+}
 function catOptions(type){ return (type==='in'?INC_CATS:EXP_CATS).map(c=>'<option>'+esc(c)+'</option>').join(''); }
 function vKeuangan(){
   const key=ui.month, s=summarize(S.tx,key), pk=shiftMonth(key,-1), p=summarize(S.tx,pk);
@@ -1609,6 +1658,7 @@ function vKeuangan(){
    '<div class="seg" role="group" aria-label="Jenis transaksi"><button type="button" data-act="txtype" data-v="out" class="out'+(ui.txType==='out'?' on':'')+'" aria-pressed="'+(ui.txType==='out')+'">Pengeluaran</button><button type="button" data-act="txtype" data-v="in" class="in'+(ui.txType==='in'?' on':'')+'" aria-pressed="'+(ui.txType==='in')+'">Pemasukan</button></div>'+
    '<div class="inline-form" style="margin-top:12px"><div><label for="tx-amount">Nominal (Rp)</label><input type="text" id="tx-amount" inputmode="numeric" autocomplete="off" placeholder="mis. 25.000" required></div><div><label for="tx-cat">Kategori</label><select id="tx-cat">'+catOptions(ui.txType)+'</select></div><div><label for="tx-date">Tanggal</label><input type="date" id="tx-date" value="'+defDate+'" required></div><div class="grow"><label for="tx-note">Catatan (opsional)</label><input type="text" id="tx-note" maxlength="80" placeholder="mis. makan siang"></div><button class="btn" type="submit">'+ic('plus',16)+'Simpan</button></div><p class="msgline" id="tx-msg" role="status"></p></form>'+
   '<div class="card">'+h2b('Ringkasan '+esc(monthLabel(key)),'bulb','butter')+'<ul class="insights">'+ins.map(i=>'<li>'+badge(i.ic,'#FDF1DD','#C9762E',24)+'<span>'+esc(i.t)+'</span></li>').join('')+'</ul></div>'+
+  '<div class="pies">'+pieCard('in',key)+pieCard('out',key)+'</div>'+
   '<div style="display:flex;flex-direction:column;gap:22px"><div class="card">'+h2b('Pengeluaran per kategori','coin','coral')+''+
    (s.byCat.length?'<div class="bars">'+s.byCat.map(c=>'<div class="bar-row"><span>'+esc(c.cat)+'</span><div class="track"><div class="fill" style="width:'+Math.max(3,c.amount/maxCat*100)+'%" data-tip="'+esc(c.cat+' · '+rp(c.amount)+' ('+Math.round(c.amount/s.expense*100)+'%)')+'"></div></div><span class="amt">'+rp(c.amount)+' <span class="muted" style="font-weight:400">'+Math.round(c.amount/s.expense*100)+'%</span></span></div>').join('')+'</div>':'<p class="empty">Belum ada pengeluaran bulan ini.</p>')+'</div>'+
    '<div class="card">'+h2b('Tren 6 bulan','up','sky')+'<div class="legend"><span><i style="background:#2a78d6"></i>Pemasukan</span><span><i style="background:#eb6834"></i>Pengeluaran</span></div><div class="chartbox">'+trendSvg(tr)+'</div>'+
