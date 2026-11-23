@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kebijakan Privasi - NEBULA</title>
+<style>
+body{margin:0;background:#FBF8F1;color:#4A3F35;font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:19px;margin:28px 0 6px}
+p,li{margin:6px 0}ul{padding-left:20px}a{color:#B5651D}
+.meta{color:#7a6e63;font-size:14px}
+.todo{background:#FDE4E1;color:#9B2C20;padding:0 4px;border-radius:4px;font-weight:700}
+.warn{background:#FDF1DD;border:1px solid #E8D3A8;border-radius:10px;padding:10px 14px;margin:16px 0;font-size:14px}
+</style></head><body><main>
+<p><a href="index.html">&larr; Kembali ke NEBULA</a></p>
+<h1>Kebijakan Privasi</h1>
+<p class="meta">Berlaku sejak 23 November 2026. Versi beta.</p>
+<div class="warn" id="todo" hidden>Halaman ini belum lengkap: isi OPERATOR_NAME, CONTACT_EMAIL, dan SUPABASE_REGION di <code>config.js</code>.</div>
+<div class="warn">Naskah ini draf yang ditulis agar sesuai dengan cara kerja aplikasi saat ini. Belum ditinjau ahli hukum. Tinjau sebelum peluncuran publik.</div>
+
+<h2>1. Pengelola</h2>
+<p>NEBULA dikelola oleh <strong data-fill="operator"></strong>. Pertanyaan, permintaan data, atau pengaduan: <a data-fill="email" href="#"></a>.</p>
+
+<h2>2. Data yang kami proses</h2>
+<ul>
+<li><strong>Akun:</strong> alamat email. Jika masuk dengan Google, nama dan foto profil dari akun Google juga ikut tersimpan di sistem login. Kami juga menyimpan tanggal persetujuanmu atas kebijakan ini.</li>
+<li><strong>Isi aplikasi:</strong> tugas, checklist, target, refleksi, dan catatan keuangan yang kamu isi. Jika kamu menyimpannya ke akun, isinya dienkripsi di browsermu sebelum dikirim (lihat bagian 4).</li>
+<li><strong>Fokus AI:</strong> teks yang kamu ketik di Fokus AI dikirim lewat server kami ke Google Gemini untuk dipecah menjadi tugas. Kami tidak menyimpan teks itu. Kami hanya mencatat jumlah penggunaan harianmu untuk membatasi kuota.</li>
+<li><strong>Pengingat WhatsApp (hanya jika kamu mengaktifkannya):</strong> nomor WhatsAppmu, waktu persetujuanmu, pilihan waktu pengingat, serta jadwal pengingat berisi waktu kirim dan jumlah tugas jatuh tempo. Judul tugas tidak pernah dikirim ke server kami. Tabel ini <strong>tidak</strong> dienkripsi ujung ke ujung, karena server perlu membacanya untuk mengirim pesan.</li>
+<li><strong>Data teknis:</strong> alamat IP, jenis perangkat, dan waktu akses yang dicatat oleh penyedia hosting dan database.</li>
+<li><strong>Di perangkatmu:</strong> salinan datamu di penyimpanan browser (localStorage). Jika kamu memilih "Ingat di perangkat ini", sebuah kunci enkripsi yang tidak bisa diekspor disimpan di IndexedDB sampai kamu keluar.</li>
+</ul>
+
+<h2>3. Tujuan dan dasar</h2>
+<p>Kami memproses data untuk menjalankan fitur NEBULA: masuk ke akun, menyinkronkan data antar perangkat, dan Fokus AI. Dasarnya adalah persetujuanmu saat mendaftar atau masuk. Kamu bisa menarik persetujuan dengan menghapus akun (bagian 7).</p>
+
+<h2>4. Enkripsi: apa yang bisa dan tidak bisa kami lihat</h2>
+<ul>
+<li>Isi aplikasi yang disimpan ke akun dienkripsi (AES-256-GCM) di browsermu dengan kunci acak. Kunci itu dilindungi frasa sandi data yang hanya kamu ketahui, dan kode pemulihan yang kamu simpan sendiri.</li>
+<li>Kami <strong>tidak bisa membaca</strong> isi itu dari database dan tidak bisa memulihkannya jika frasa sandi dan kode pemulihan hilang. Data yang terkunci akan tetap tidak terbaca.</li>
+<li>Kami <strong>bisa melihat</strong>: email, nama dan foto dari Google (jika dipakai), waktu pembuatan dan perubahan data, ukuran data, dan jumlah penggunaan AI harian.</li>
+<li><strong>Batasan:</strong> aplikasi berjalan dari situs yang kami kelola. Secara teknis, versi aplikasi yang diubah dengan niat jahat bisa menangkap frasa sandimu saat kamu mengetiknya. Kami berkomitmen tidak melakukannya, dan enkripsi ini melindungi dari pembacaan database, cadangan, dan kebocoran data di sisi penyimpanan, bukan dari perubahan kode aplikasi.</li>
+<li>Teks di Fokus AI <strong>tidak</strong> terenkripsi ujung ke ujung, karena Google Gemini harus membacanya.</li>
+<li>Jika kamu mengaktifkan Pengingat WhatsApp, kami <strong>bisa melihat</strong> nomor WhatsAppmu, waktu dan jumlah pengingat, dan status pengirimannya (terkirim, gagal, atau berhenti).</li>
+</ul>
+
+<h2>5. Pihak ketiga dan lokasi data</h2>
+<ul>
+<li><strong>Supabase</strong>: database dan sistem login. Wilayah server: <strong data-fill="region"></strong>.</li>
+<li><strong>Netlify</strong>: hosting situs dan fungsi server Fokus AI.</li>
+<li><strong>Google</strong>: login Google dan Gemini API (Fokus AI). Pada layanan gratis Gemini, Google dapat memakai masukan untuk memperbaiki produknya. Jangan menulis data sensitif atau data orang lain di Fokus AI.</li>
+<li><strong>Meta (WhatsApp Business Platform)</strong>: mengirim dan menerima pesan Pengingat WhatsApp, hanya jika kamu mengaktifkannya. Meta menerima nomormu, isi pesan pengingat, dan pesan yang kamu kirim ke NEBULA (kode MULAI atau STOP). Pemrosesan oleh Meta tunduk pada ketentuan dan kebijakan privasi WhatsApp.</li>
+<li><strong>Cloudflare Turnstile</strong>: verifikasi anti-bot saat masuk atau mendaftar, hanya jika fitur ini diaktifkan.</li>
+</ul>
+<p>Sebagian penyedia berada di luar Indonesia, sehingga datamu dapat diproses di luar negeri.</p>
+
+<h2>6. Berapa lama data disimpan</h2>
+<p>Selama akunmu aktif. Jadwal pengingat WhatsApp dihapus otomatis 30 hari setelah waktunya. Jika kamu berhenti dengan membalas STOP, jadwal dihapus, tetapi nomor dan penanda berhenti tetap kami simpan agar pengingat tidak terkirim lagi sampai kamu menghubungkannya kembali atau menghapusnya lewat <em>Data &rarr; Pengingat WhatsApp &rarr; Matikan</em>. Saat kamu menghapus akun, data akun dan isi aplikasimu dihapus dari database kami. Cadangan di penyedia dapat menyimpannya sementara sampai siklus cadangan mereka berganti.</p>
+
+<h2>7. Hakmu</h2>
+<ul>
+<li><strong>Akses dan salinan:</strong> menu <em>Data &rarr; Ekspor data</em>.</li>
+<li><strong>Koreksi:</strong> ubah langsung di aplikasi.</li>
+<li><strong>Penghapusan dan penarikan persetujuan:</strong> menu <em>Data &rarr; Hapus akun dan data</em>. Untuk Pengingat WhatsApp saja: balas <em>STOP</em> di WhatsApp, atau <em>Data &rarr; Pengingat WhatsApp &rarr; Matikan</em> (menghapus nomor dan jadwal).</li>
+<li>Hak lain, keberatan, atau pengaduan: hubungi <a data-fill="email" href="#"></a>.</li>
+</ul>
+
+<h2>8. Keamanan dan insiden</h2>
+<p>Kami memakai enkripsi, aturan akses per pengguna di database, dan pembatasan akses ke dashboard. Tidak ada sistem yang 100% aman. Jika terjadi kebocoran yang berisiko bagimu, kami akan memberi tahu kamu dan pihak berwenang sesuai ketentuan yang berlaku.</p>
+
+<h2>9. Usia</h2>
+<p>NEBULA untuk pengguna berusia 18 tahun ke atas.</p>
+
+<h2>10. Perubahan</h2>
+<p>Jika kebijakan ini berubah secara berarti, kami akan meminta persetujuan ulang saat kamu masuk.</p>
+</main>
+<script src="config.js"></script><script src="legal.js"></script>
+</body></html>
