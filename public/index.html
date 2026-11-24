@@ -152,6 +152,19 @@ textarea{min-height:72px;resize:vertical}
 .tform .tf-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px}
 .tform .tf-row select,.tform .tf-row input{width:auto;max-width:210px;padding:5px 8px;font-size:13px}
 .tform .tf-row .sp{flex:1}
+.tf-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.tf-chips{flex:1 1 220px;display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+@media (max-width:520px){.tf-bar{justify-content:flex-end}.tf-chips{flex-basis:100%}}
+.cbtn{display:inline-flex;align-items:center;gap:5px;max-width:200px;background:#fff;border:1px solid var(--line2);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:500;color:var(--muted);white-space:nowrap}
+.cbtn .l{overflow:hidden;text-overflow:ellipsis}
+.cbtn:hover{border-color:var(--accent);color:var(--accent-ink)}
+.cbtn.set{background:var(--accent-soft);border-color:transparent;color:var(--accent-ink);font-weight:600}
+.cbtn.set.p1{color:var(--p1)} .cbtn.set.p2{color:var(--warn)} .cbtn.set.p3{color:var(--p3)}
+.pop .fl.p1{color:var(--p1)} .pop .fl.p2{color:var(--warn)} .pop .fl.p3{color:var(--p3)} .pop .fl.p4{color:var(--muted)}
+.rs-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rs-list li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rs-list li:last-child{border-bottom:0}
+.rs-list .ri{color:var(--accent-ink);flex:none;margin-top:2px} .rs-list .tx{flex:1;min-width:0;overflow-wrap:anywhere} .rs-list .btn{flex:none}
 .cmpl{margin-top:18px}
 .cmpl>summary{cursor:pointer;color:var(--muted);font-size:13.5px;font-weight:600;padding:6px 0;list-style:none;display:flex;align-items:center;gap:6px}
 .cmpl>summary::-webkit-details-marker{display:none}
@@ -161,7 +174,7 @@ textarea{min-height:72px;resize:vertical}
 .empty-st svg{color:var(--line2)}
 .empty-st b{color:var(--ink);font-size:16px}
 .empty-st p{margin:0;font-size:14px;max-width:340px}
-.pop{position:fixed;z-index:90;background:#fff;border:1px solid var(--line2);border-radius:var(--r2);box-shadow:0 8px 28px rgba(38,35,43,.16);padding:6px;min-width:210px}
+.pop{max-height:min(360px,70vh);overflow:auto;max-width:min(320px,92vw);position:fixed;z-index:90;background:#fff;border:1px solid var(--line2);border-radius:var(--r2);box-shadow:0 8px 28px rgba(38,35,43,.16);padding:6px;min-width:210px}
 .pop button.po{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:7px 10px;border-radius:6px;text-align:left;font-size:14px}
 .pop button.po:hover{background:var(--accent-tint)}
 .pop button.po .pv{margin-left:auto;color:var(--muted);font-size:12.5px}
@@ -295,6 +308,16 @@ textarea{min-height:72px;resize:vertical}
 .track{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
 .track .fill{height:100%;background:var(--expense);border-radius:999px}
 .bar-row .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+.pies{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px}
+.pie-body{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.pie-svg{width:176px;height:176px;flex:none;display:block}
+.pie-svg path,.pie-svg circle.sl{stroke:var(--surface);stroke-width:2;stroke-linejoin:round;outline:none}
+.pie-svg path:hover,.pie-svg path:focus-visible,.pie-svg circle.sl:hover,.pie-svg circle.sl:focus-visible{opacity:.82}
+.pie-ctr,.pie-tot{pointer-events:none} .pie-ctr{font-size:11.5px;fill:var(--muted)} .pie-tot{font-size:13.5px;font-weight:700;fill:var(--ink);font-variant-numeric:tabular-nums}
+.pielg{list-style:none;margin:0;padding:0;flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:7px;font-size:13.5px}
+.pielg li{display:grid;grid-template-columns:10px minmax(0,1fr) auto 40px;gap:8px;align-items:center}
+.pielg i{width:10px;height:10px;border-radius:3px;display:block}
+.pielg .n{overflow-wrap:anywhere} .pielg .a{font-variant-numeric:tabular-nums;font-weight:600} .pielg .p{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
 .chartbox{overflow-x:auto} .chartbox svg{display:block;width:100%;min-width:480px;height:auto}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
@@ -1265,17 +1288,28 @@ function taskRow(c,o){
   return '<li class="ti'+(c.done?' done':'')+'" data-tid="'+id+'">'+
    '<button class="tchk p'+p+'" type="button" data-act="ck-toggle" data-id="'+id+'" aria-pressed="'+!!c.done+'" aria-label="'+(c.done?'Tandai belum selesai: ':'Tandai selesai: ')+esc(c.title)+'">'+(c.done?ic('tick',12):'')+'</button>'+
    '<div class="tmain"><button class="ttitle" type="button" data-act="t-open" data-id="'+id+'">'+esc(c.title)+'</button>'+(meta?'<div class="tmeta">'+meta+'</div>':'')+'</div>'+
-   '<div class="tact"><button class="icon-btn" type="button" data-act="t-date" data-id="'+id+'" aria-label="Ubah tanggal: '+esc(c.title)+'" title="Ubah tanggal">'+ic('cal',16)+'</button><button class="icon-btn" type="button" data-act="t-open" data-id="'+id+'" aria-label="Ubah detail: '+esc(c.title)+'" title="Detail">'+ic('pen',16)+'</button><button class="icon-btn" type="button" data-act="ck-del" data-id="'+id+'" aria-label="Hapus: '+esc(c.title)+'" title="Hapus">'+ic('trash',16)+'</button></div></li>';
+   '<div class="tact"><button class="icon-btn" type="button" data-act="t-date" data-pop="1" data-id="'+id+'" aria-label="Ubah tanggal: '+esc(c.title)+'" title="Ubah tanggal">'+ic('cal',16)+'</button><button class="icon-btn" type="button" data-act="t-proj" data-pop="1" data-id="'+id+'" aria-label="Pindahkan ke project: '+esc(c.title)+'" title="Pindahkan ke project">'+ic('hash',16)+'</button><button class="icon-btn" type="button" data-act="ck-del" data-id="'+id+'" aria-label="Hapus: '+esc(c.title)+'" title="Hapus">'+ic('trash',16)+'</button></div></li>';
 }
 function projOptions(sel){
   return '<option value="">'+L.inbox+'</option>'+S.goals.filter(g=>!g.done||g.id===sel).map(g=>'<option value="'+esc(g.id)+'"'+(g.id===sel?' selected':'')+'>'+esc(g.title)+'</option>').join('');
 }
+function addEff(){
+  const a=ui.add, f=a.f, q=parseQuick(a.text||'');
+  return {q:q,date:f.dl?(f.date||''):(q.date||f.date||''),time:q.time||'',pri:f.pl?(+f.pri>=1&&+f.pri<=3?+f.pri:4):(q.pri||(+f.pri>=1&&+f.pri<=3?+f.pri:4)),proj:f.proj||''};
+}
+function cbtn(act,inner,set,cls){ return '<button class="cbtn'+(set?' set':'')+(cls?' '+cls:'')+'" type="button" data-act="'+act+'" data-pop="1">'+inner+'</button>'; }
+function addChips(){
+  const e=addEff(), g=e.proj?S.goals.find(x=>x.id===e.proj):null;
+  const dl=e.date?relDay(e.date)+(e.time?' '+e.time:''):(e.time||'Tanggal');
+  return cbtn('a-date',ic('cal',14)+'<span class="l">'+esc(dl)+'</span>',!!(e.date||e.time))+
+    cbtn('a-pri',ic('flag',14)+'<span class="l">'+(e.pri<4?'P'+e.pri:'Prioritas')+'</span>',e.pri<4,'p'+e.pri)+
+    cbtn('a-proj',(g?ic('hash',14):ic('inbox',14))+'<span class="l">'+esc(g?g.title:L.inbox)+'</span>',!!g);
+}
 function addForm(key){
-  const a=ui.add, f=a.f, pri=+f.pri>=1&&+f.pri<=3?+f.pri:4;
+  const a=ui.add;
   return '<form class="tform" data-form="tadd" data-key="'+esc(key)+'">'+
-   '<input class="tf-title" id="ta-title" type="text" maxlength="120" autocomplete="off" placeholder="Nama tugas, mis. Kirim laporan besok jam 10.00 p1" aria-label="Nama tugas" value="'+esc(a.text||'')+'">'+
-   '<div class="tf-prev" id="ta-prev">'+prevChips(a.text||'',f)+'</div>'+
-   '<div class="tf-row"><input type="date" id="ta-date" aria-label="Tanggal" value="'+esc(f.date||'')+'"><select id="ta-pri" aria-label="Prioritas">'+[1,2,3,4].map(n=>'<option value="'+n+'"'+(n===pri?' selected':'')+'>P'+n+(n===4?' (biasa)':'')+'</option>').join('')+'</select><select id="ta-proj" aria-label="Project">'+projOptions(f.proj||'')+'</select><span class="sp"></span><button class="btn ghost small" type="button" data-act="add-cancel">Batal</button><button class="btn small" type="submit">Tambah tugas</button></div></form>';
+   '<input class="tf-title" id="ta-title" type="text" maxlength="120" autocomplete="off" placeholder="Tugas baru, mis. Laporan besok 10.00 p1" aria-label="Nama tugas" value="'+esc(a.text||'')+'">'+
+   '<div class="tf-bar"><div class="tf-chips" id="ta-prev">'+addChips()+'</div><button class="btn ghost small" type="button" data-act="add-cancel">Batal</button><button class="btn small" type="submit">Tambah</button></div></form>';
 }
 function addRow(key,def){
   if(ui.add&&ui.add.key===key) return addForm(key);
@@ -1358,7 +1392,7 @@ function autoSum(date){
 }
 
 /* ---------- UI state, rute, navigasi ---------- */
-const ui={open:(function(){ try{ return JSON.parse(localStorage.getItem('nebula-open')||'{}')||{}; }catch(e){ return {}; } })(),editId:null,add:null,dlg:null,plan:null,ai:false,month:monthKey(todayStr()),txType:'out',checkin:[],draft:{selesai:'',belum:'',hambatan:''},chat:[{role:'bot',text:'Ceritakan apa yang mau kamu selesaikan. Aku pecah jadi tugas, kamu setujui dulu sebelum masuk ke Inbox.'}],aiMode:null,thinking:false,csv:null};
+const ui={open:(function(){ try{ return JSON.parse(localStorage.getItem('nebula-open')||'{}')||{}; }catch(e){ return {}; } })(),editId:null,add:null,dlg:null,plan:null,ai:false,month:monthKey(todayStr()),txType:'out',checkin:[],draft:{selesai:'',belum:'',hambatan:''},chat:[{role:'bot',text:'Ceritakan apa yang mau kamu selesaikan. Aku pecah jadi tugas, kamu setujui dulu sebelum masuk ke Inbox.'}],aiMode:null,aiWhy:'',thinking:false,csv:null};
 function cur(){
   const h=(location.hash||'').replace(/^#\/?/,''), p=h.split('/'), a=p[0];
   if(a==='inbox'||a==='upcoming'||a==='refleksi'||a==='keuangan') return {name:a};
@@ -1432,7 +1466,7 @@ function chatHtml(){
     return h+'</div>';
   }).join('')+(ui.thinking?'<div class="msg bot muted">Sedang memecah pekerjaanmu...</div>':'');
 }
-function aiModeText(){ const note=' Teks dikirim ke Google Gemini; jangan tulis data sensitif.'; return ui.aiMode==='ai'?'Mode: dipecah oleh AI (Google Gemini).'+note:ui.aiMode==='local'?(sb&&session?'Mode sederhana: AI tidak tersedia, dipecah per koma, "dan", atau baris baru.':'Mode sederhana: masuk untuk memakai AI. Sementara dipecah per koma, "dan", atau baris baru.'):'Tugas juga bisa ditambah manual.'+(sb&&session?note:''); }
+function aiModeText(){ const note=' Teks dikirim ke Google Gemini; jangan tulis data sensitif.'; return ui.aiMode==='ai'?'Mode: dipecah oleh AI (Google Gemini).'+note:ui.aiMode==='local'?(sb&&session?'Mode sederhana: AI tidak tersedia'+(ui.aiWhy?' (kode: '+ui.aiWhy+')':'')+', dipecah per koma, "dan", atau baris baru.':'Mode sederhana: masuk untuk memakai AI. Sementara dipecah per koma, "dan", atau baris baru.'):'Tugas juga bisa ditambah manual.'+(sb&&session?note:''); }
 function cleanProposal(arr){
   if(!Array.isArray(arr)) return null;
   const out=arr.filter(x=>x&&typeof x.title==='string'&&x.title.trim()).slice(0,8).map(x=>({
@@ -1442,17 +1476,21 @@ function cleanProposal(arr){
   return out.length?out:null;
 }
 async function breakdown(text){
+  let why='';
   if(sb&&session){
     try{
       const cur=await sb.auth.getSession();
       const tok=cur&&cur.data&&cur.data.session?cur.data.session.access_token:null;
       if(tok){
-        const r=await fetch('/.netlify/functions/breakdown',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({text:text,today:todayStr()})});
-        if(r.status===429) toast('Batas penggunaan AI hari ini sudah habis. Pekerjaan dipecah dengan aturan sederhana.');
-        else if(r.ok){ const j=await r.json(); const p=cleanProposal(j&&j.tasks); if(p) return {tasks:p,mode:'ai'}; }
-      }
-    }catch(e){}
+        const ac=new AbortController(), to=setTimeout(()=>ac.abort(),15000);
+        let r; try{ r=await fetch('/.netlify/functions/breakdown',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({text:text,today:todayStr()}),signal:ac.signal}); } finally{ clearTimeout(to); }
+        if(r.status===429){ why='kuota_harian'; toast('Batas penggunaan AI hari ini sudah habis. Pekerjaan dipecah dengan aturan sederhana.'); }
+        else if(r.ok){ const j=await r.json(); const p=cleanProposal(j&&j.tasks); if(p){ ui.aiWhy=''; return {tasks:p,mode:'ai'}; } why='format_tidak_valid'; }
+        else { let j=null; try{ j=await r.json(); }catch(e2){} why=(j&&typeof j.error==='string'&&/^[a-z_]{3,30}$/.test(j.error))?j.error:'http_'+r.status; }
+      } else why='sesi_tidak_ada';
+    }catch(e){ why=e&&e.name==='AbortError'?'timeout_15_detik':'jaringan'; }
   }
+  ui.aiWhy=why;
   return {tasks:splitTasks(text,todayDate()),mode:'local'};
 }
 
@@ -1493,9 +1531,9 @@ function makePlan(){
 function aiItem(tx,why,btn){ return '<div class="ai-item"><div class="tx">'+tx+(why?'<span class="why1">'+esc(why)+'</span>':'')+'</div>'+(btn||'')+'</div>'; }
 const tLink=c=>'<button class="ttitle" type="button" data-act="t-open" data-id="'+esc(c.id)+'" style="font-size:13.5px">'+esc(c.title)+'</button>';
 function aiCtx(){
-  const t=todayStr(), open=openTasks();
-  let h='<p class="ai-note" style="margin-top:12px">Saran dihitung di perangkatmu dengan aturan sederhana. Data tugas tidak dikirim ke mana pun. Hanya teks yang kamu ketik di Percakapan dikirim ke Google Gemini.</p>';
-  if(!open.length&&!S.goals.length) return h+'<div class="aisec"><p class="ai-stat muted">Belum ada tugas. Tambahkan tugas, atau tulis pekerjaanmu di Percakapan di bawah.</p></div>'+aiEval();
+  const t=todayStr(), open=openTasks(), rs=reflSuggest(), rtop=rs.late&&!rs.saved, rhtml=aiRefl(rs);
+  let h='<p class="ai-note" style="margin-top:12px">Saran dihitung di perangkatmu dengan aturan sederhana. Data tugas tidak dikirim ke mana pun. Hanya teks yang kamu ketik di Percakapan dikirim ke Google Gemini.</p>'+(rtop?rhtml:'');
+  if(!open.length&&!S.goals.length) return h+'<div class="aisec"><p class="ai-stat muted">Belum ada tugas. Tambahkan tugas, atau tulis pekerjaanmu di Percakapan di bawah.</p></div>'+(rtop?'':rhtml)+aiEval();
   const focus=open.filter(c=>{ const d=tDate(c); return (d&&d<=t)||tPri(c)<=2; }).sort((a,b)=>tScore(b)-tScore(a)).slice(0,3);
   h+='<div class="aisec"><h3>'+ic('flag',13)+'Kerjakan dulu</h3>'+(focus.length?focus.map(c=>aiItem(tLink(c),tWhy(c))).join(''):'<p class="ai-stat muted">Tidak ada yang mendesak hari ini.</p>')+'</div>';
   const sug=open.map(c=>[c,sugPri(c)]).filter(x=>x[1]<tPri(x[0])).sort((a,b)=>tScore(b[0])-tScore(a[0])).slice(0,3);
@@ -1512,7 +1550,44 @@ function aiCtx(){
     h+=p.all.length?'<div class="ai-plan"><ol>'+p.all.map(x=>'<li><time>'+hm(x.m)+'</time><span>'+esc(x.title)+(x.fixed?' <span class="muted">(waktu tetap)</span>':'')+'</span></li>').join('')+'</ol>'+(p.rest.length?'<p class="ai-note" style="margin:6px 0 0">Tidak muat di jam kerja yang tersisa hari ini: '+p.rest.map(r=>esc(r.title)).join(', ')+'.</p>':'')+'<p class="ai-note" style="margin:6px 0 0">Asumsi 1 jam per tugas, jam 08.00 sampai 21.00.</p></div><div class="acts" style="display:flex;gap:6px;margin-top:8px">'+(p.plan.length?'<button class="btn small" type="button" data-act="ai-plan-apply">Terapkan jadwal</button>':'')+(p.rest.length?'<button class="btn ghost small" type="button" data-act="ai-plan-rest">Sisanya ke besok</button>':'')+'<button class="btn ghost small" type="button" data-act="ai-plan-clear">Tutup</button></div>':'<p class="ai-stat muted">Tidak ada tugas hari ini untuk dijadwalkan.</p><div style="margin-top:6px"><button class="btn ghost small" type="button" data-act="ai-plan-clear">Tutup</button></div>';
   } else h+='<p class="ai-note">Urutkan tugas hari ini ke jam kerja berdasarkan prioritas dan tenggat. Kamu setujui dulu.</p><button class="btn ghost small" type="button" data-act="ai-plan">Susun jadwal hari ini</button>';
   h+='</div>';
-  return h+aiEval();
+  return h+(rtop?'':rhtml)+aiEval();
+}
+/* ---------- Saran refleksi harian (dihitung di perangkat dari tugas, check-in, dan keuangan) ---------- */
+function reflSuggest(){
+  const t=todayStr(), lim=ymd(addDays(todayDate(),3)), tm=ymd(addDays(todayDate(),1)), all=live();
+  const todays=all.filter(c=>tDate(c)===t), done=todays.filter(c=>c.done), open=todays.filter(c=>!c.done).sort((a,b)=>tScore(b)-tScore(a));
+  const over=openTasks(c=>{ const d=tDate(c); return d&&d<t; }).sort((a,b)=>tScore(b)-tScore(a));
+  const soon=openTasks(c=>{ const d=tDate(c); return d&&d>t&&d<=lim; }).sort((a,b)=>tScore(b)-tScore(a));
+  const recent=S.refl.filter(r=>r.date<t).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  const cnt=k=>recent.filter(r=>(r.checkin||[]).indexOf(k)>=0).length+(ui.checkin.indexOf(k)>=0?1:0);
+  const nm=(a,n)=>a.slice(0,n).map(c=>'"'+c.title+'"').join(', ')+(a.length>n?' dan '+(a.length-n)+' lainnya':'');
+  const it=[];
+  if(!todays.length){
+    if(soon.length) it.push({ic:'alert',t:'Hari ini tidak ada tugas terjadwal, tetapi '+soon.length+' tugas jatuh tempo dalam 3 hari: '+nm(soon,2)+'. Langkah pertama apa yang bisa dimulai hari ini?',s:'Langkah pertama yang bisa kumulai: ',link:'#upcoming',linkTxt:'Upcoming'});
+    else it.push({ic:'bulb',t:'Hari ini tidak ada tugas terjadwal. Apa yang ingin kamu majukan, sekecil apa pun?',s:'Yang ingin kumajukan: '});
+  } else if(!done.length) it.push({ic:'flag',t:'Dari '+todays.length+' tugas hari ini belum ada yang selesai. Apa yang menahanmu mulai? Tulis satu langkah terkecil.',s:'Yang menahanku mulai: '});
+  else if(!open.length) it.push({ic:'check',t:'Semua '+todays.length+' tugas hari ini selesai. Apa yang membuatnya lancar dan bisa diulang besok?',s:'Yang membuatnya lancar: '});
+  else it.push({ic:'tasks',t:done.length+' dari '+todays.length+' tugas selesai. Apa hambatan untuk '+nm(open,2)+'?',s:'Hambatan utama: '});
+  if(over.length) it.push({ic:'alert',t:over.length+' tugas terlambat: '+nm(over,2)+'. Putuskan satu per satu: kerjakan, jadwalkan ulang, atau hapus.',link:'#today',linkTxt:'Lihat'});
+  if(cnt('tidur')>=2) it.push({ic:'moon',t:'"Kurang tidur" muncul '+cnt('tidur')+' kali dalam 3 hari terakhir. Pertimbangkan jam berhenti malam ini dan taruh tugas berat di jam paling segar besok.',s:'Malam ini aku berhenti jam: '});
+  const sm=summarize(S.tx,monthKey(t));
+  if(sm.expense>0&&sm.expense>sm.income) it.push({ic:'coin',t:'Pengeluaran bulan ini ('+rp(sm.expense)+') melebihi pemasukan ('+rp(sm.income)+'). Cek Keuangan sebelum menutup hari.',link:'#keuangan',linkTxt:'Keuangan'});
+  else if(cnt('keuangan')>=2) it.push({ic:'coin',t:'"Mikirin keuangan" muncul '+cnt('keuangan')+' kali dalam 3 hari terakhir. Satu pengeluaran atau pemasukan apa yang paling mengganggumu?',s:'Yang paling kupikirkan soal uang: '});
+  const next=open.concat(over,openTasks(c=>tDate(c)===tm)).filter((c,i,a)=>a.indexOf(c)===i).sort((a,b)=>tScore(b)-tScore(a)).slice(0,3);
+  const tmN=openTasks(c=>tDate(c)===tm).length;
+  if(next.length) it.push({ic:'right',t:'Besok mulai dari '+nm(next,3)+'.'+(tmN>6?' Besok sudah '+tmN+' tugas, pertimbangkan memindahkan yang paling longgar.':''),s:'Besok aku mulai dari "'+next[0].title+'". '});
+  return {items:it.slice(0,4),saved:!!S.refl.find(r=>r.date===t),late:new Date().getHours()>=17};
+}
+function aiRefl(r){
+  const onPage=cur().name==='refleksi';
+  const lead=r.saved?'Refleksi hari ini sudah tersimpan.':r.late?'Sudah sore, saat yang pas untuk refleksi.':'Refleksi hari ini belum ditulis.';
+  return '<div class="aisec"><h3>'+ic('pen',13)+'Refleksi hari ini</h3><p class="ai-stat">'+esc(lead)+'</p>'+r.items.slice(0,2).map(i=>aiItem(esc(i.t),'')).join('')+(onPage?'':'<div style="margin-top:8px"><a class="btn ghost small" href="#refleksi" id="ai-refl-open">'+(r.saved?'Buka refleksi':'Tulis refleksi')+'</a></div>')+'</div>';
+}
+function reflSugCard(){
+  const r=reflSuggest();
+  return '<div class="card" id="rf-sug">'+h2b('Saran untuk refleksi hari ini','spark','lilac')+(r.saved?'<p class="muted" style="margin:0 0 6px">Refleksi hari ini sudah tersimpan. Kamu bisa memperbaruinya.</p>':r.late?'<p class="muted" style="margin:0 0 6px">Sudah sore, saat yang pas untuk menulis.</p>':'')+
+   '<ul class="rs-list">'+r.items.map((i,n)=>'<li><span class="ri">'+ic(i.ic,16)+'</span><span class="tx">'+esc(i.t)+'</span>'+(i.s?'<button class="btn ghost small" type="button" data-act="rf-starter" data-i="'+n+'">Tulis</button>':'')+(i.link?'<a class="btn ghost small" href="'+i.link+'">'+esc(i.linkTxt)+'</a>':'')+'</li>').join('')+'</ul>'+
+   '<p class="ai-note" style="margin:8px 0 0">Disusun di perangkatmu dari tugas, check-in, dan keuangan dengan aturan sederhana. Tidak ada yang dikirim ke AI online.</p></div>';
 }
 function aiEval(){
   const t=todayStr(), from=ymd(addDays(todayDate(),-6)), all=live();
@@ -1557,9 +1632,9 @@ function vRefleksi(){
   else if(!p.items.length) pat='<p class="muted" style="margin:0">Belum ada check-in yang cukup untuk dibandingkan (minimal 3 hari ada dan 3 hari tidak).</p>';
   else pat='<ul class="insights">'+p.items.map(i=>'<li>'+badge('bulb','#FDF1DD','#C9762E',24)+'<span>Di '+i.n+' hari dengan "'+FLAGS[i.flag]+'", rata-rata '+i.withFlag.toFixed(1)+' item checklist selesai per hari, dibanding '+i.without.toFixed(1)+' di hari lain (korelasi, bukan sebab-akibat).</span></li>').join('')+'</ul>';
   return '<div class="wrap">'+phead('Refleksi harian','Tulis singkat, lalu tandai kondisimu hari ini.','pen','lilac',{v:1})+demoNote()+
-  '<form class="card" data-form="refl">'+
+  reflSugCard()+'<form class="card" data-form="refl">'+
    autoSum(todayStr())+
-   '<label for="rf-hambatan">Apa hambatan terbesarnya?</label><textarea id="rf-hambatan" maxlength="400">'+esc(ui.draft.hambatan)+'</textarea>'+
+   '<label for="rf-hambatan">Catatan hari ini <span style="font-weight:400">(hambatan, pelajaran, rencana besok)</span></label><textarea id="rf-hambatan" maxlength="400">'+esc(ui.draft.hambatan)+'</textarea>'+
    '<label>Check-in kesejahteraan <span style="font-weight:400">(opsional)</span></label><div class="chips" id="chips">'+chipsHtml()+'</div>'+
    '<div class="why" style="margin-top:16px"><div style="display:flex;gap:8px;align-items:center;font-weight:600;color:var(--ink)">'+badge('bulb','#FDF1DD','#C9762E',24)+'Apa kata riset? Buktinya masih terbatas</div><div class="cols">'+
     '<div class="mini t-butter"><b>'+badge('coin','#FBF1D1','#8A6A12',22)+'Keuangan</b>Survei 1.272 mahasiswa di Lebanon: keuangan yang lebih buruk berkaitan dengan tidur terganggu, stres, dan tekanan psikologis (korelasi). <a class="link" href="https://bmcpublichealth.biomedcentral.com/articles/10.1186/s12889-024-19312-0" target="_blank" rel="noopener">Studi di Lebanon</a></div>'+
@@ -1568,7 +1643,7 @@ function vRefleksi(){
     '<p class="muted" style="font-size:12px;margin:10px 0 0">Ringkasan tiga studi, bukan nasihat medis. Semuanya korelasi atau bukti belum cukup. Check-in hanya untuk melihat pola datamu sendiri.</p></div>'+
    '<div style="margin-top:16px"><button class="btn" type="submit">Simpan refleksi '+ic('right',16)+'</button></div><p class="msgline" id="rf-msg" role="status"></p></form>'+
   '<div class="card">'+h2b('Pola produktivitas','bulb','butter')+pat+'</div>'+
-  '<div>'+h2b('Riwayat refleksi','tasks','lilac')+(hist.length?'<ul class="list">'+hist.map(r=>'<li class="row-card" style="align-items:flex-start;flex-direction:column;gap:6px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b>'+esc(dayLabel(r.date))+'</b>'+r.checkin.map(k=>'<span class="chip static k-'+esc(k)+'">'+esc(FLAGS[k]||k)+'</span>').join('')+'</div><div style="font-size:14px"><span class="muted">Selesai:</span> '+esc(reflText(r).selesai||'-')+'<br><span class="muted">Belum:</span> '+esc(reflText(r).belum||'-')+'<br><span class="muted">Hambatan:</span> '+esc(r.hambatan||'-')+'</div></li>').join('')+'</ul>':'<div class="card empty">Belum ada refleksi.</div>')+'</div></div>';
+  '<div>'+h2b('Riwayat refleksi','tasks','lilac')+(hist.length?'<ul class="list">'+hist.map(r=>'<li class="row-card" style="align-items:flex-start;flex-direction:column;gap:6px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b>'+esc(dayLabel(r.date))+'</b>'+r.checkin.map(k=>'<span class="chip static k-'+esc(k)+'">'+esc(FLAGS[k]||k)+'</span>').join('')+'</div><div style="font-size:14px"><span class="muted">Selesai:</span> '+esc(reflText(r).selesai||'-')+'<br><span class="muted">Belum:</span> '+esc(reflText(r).belum||'-')+'<br><span class="muted">Catatan:</span> '+esc(r.hambatan||'-')+'</div></li>').join('')+'</ul>':'<div class="card empty">Belum ada refleksi.</div>')+'</div></div>';
 }
 
 /* ---------- Keuangan ---------- */
@@ -1591,6 +1666,45 @@ function trendSvg(data){
   });
   return s+'</svg>';
 }
+/* ---------- Pie: porsi kategori ---------- */
+/* Warna mengikuti kategori (bukan peringkat). Urutan = slot 3..8 palet tervalidasi; biru/oranye sengaja dilewati karena sudah berarti Pemasukan/Pengeluaran di grafik tren. */
+const PIE_COL={'Makan & minum':'#1baf7a','Transport':'#eda100','Tempat tinggal':'#e87ba4','Kuliah & buku':'#008300','Hiburan':'#6250d6','Kesehatan & olahraga':'#e34948',
+  'Kiriman orang tua':'#1baf7a','Beasiswa':'#eda100','Kerja paruh waktu':'#e87ba4'};
+const PIE_OTHER='#8f8d86';
+function catShares(tx,key,type){
+  const cats=type==='in'?INC_CATS:EXP_CATS, sum={}; let total=0;
+  tx.forEach(t=>{
+    if(!t||t.type!==type||monthKey(t.date)!==key) return;
+    const a=Number(t.amount); if(!isFinite(a)||a<=0) return;
+    const c=PIE_COL[t.cat]&&cats.indexOf(t.cat)>=0?t.cat:'Lainnya';
+    sum[c]=(sum[c]||0)+a; total+=a;
+  });
+  const items=Object.keys(sum).map(c=>({cat:c,amount:sum[c],color:c==='Lainnya'?PIE_OTHER:PIE_COL[c]}));
+  items.sort((a,b)=>(a.cat==='Lainnya')-(b.cat==='Lainnya')||b.amount-a.amount);
+  /* persen bulat dengan sisa terbesar, supaya jumlahnya tepat 100 */
+  let used=0; items.forEach(it=>{ const x=it.amount/total*100; it.pct=Math.floor(x); it.rem=x-it.pct; used+=it.pct; });
+  items.slice().sort((a,b)=>b.rem-a.rem).slice(0,Math.max(0,100-used)).forEach(it=>it.pct++);
+  return {items:items,total:total};
+}
+function pctTxt(it){ return it.pct===0?'<1%':it.pct+'%'; }
+function pieSvg(sh,title){
+  const cx=88,cy=88,R=82,r=54, pt=(rad,a)=>[(cx+rad*Math.cos(a)).toFixed(2),(cy+rad*Math.sin(a)).toFixed(2)];
+  let a0=-Math.PI/2, out='';
+  sh.items.forEach(it=>{
+    const tip=it.cat+' · '+rp(it.amount)+' ('+pctTxt(it)+')', att=' fill="'+it.color+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'"';
+    if(sh.items.length===1){ out+='<circle class="sl" cx="'+cx+'" cy="'+cy+'" r="'+((R+r)/2)+'" fill="none" stroke="'+it.color+'" stroke-width="'+(R-r)+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'"/>'; return; }
+    const a1=a0+it.amount/sh.total*Math.PI*2, big=(a1-a0)>Math.PI?1:0, o0=pt(R,a0), o1=pt(R,a1), i1=pt(r,a1), i0=pt(r,a0);
+    out+='<path d="M'+o0+' A'+R+' '+R+' 0 '+big+' 1 '+o1+' L'+i1+' A'+r+' '+r+' 0 '+big+' 0 '+i0+' Z"'+att+'/>';
+    a0=a1;
+  });
+  return '<svg class="pie-svg" viewBox="0 0 176 176" role="group" aria-label="'+esc(title)+'">'+out+'<text class="pie-ctr" x="88" y="83" text-anchor="middle">Total</text><text class="pie-tot" x="88" y="101" text-anchor="middle">'+esc(rp(sh.total))+'</text></svg>';
+}
+function pieCard(type,key){
+  const sh=catShares(S.tx,key,type), isIn=type==='in', title=isIn?'Porsi pemasukan':'Porsi pengeluaran';
+  if(!sh.items.length) return '<div class="card">'+h2b(title,'coin',isIn?'sky':'coral')+'<p class="empty">Belum ada '+(isIn?'pemasukan':'pengeluaran')+' bulan ini.</p></div>';
+  return '<div class="card">'+h2b(title,'coin',isIn?'sky':'coral')+'<div class="pie-body">'+pieSvg(sh,title+' '+monthLabel(key))+
+    '<ul class="pielg">'+sh.items.map(it=>'<li><i style="background:'+it.color+'"></i><span class="n">'+esc(it.cat)+'</span><span class="a">'+esc(rp(it.amount))+'</span><span class="p">'+esc(pctTxt(it))+'</span></li>').join('')+'</ul></div></div>';
+}
 function catOptions(type){ return (type==='in'?INC_CATS:EXP_CATS).map(c=>'<option>'+esc(c)+'</option>').join(''); }
 function vKeuangan(){
   const key=ui.month, s=summarize(S.tx,key), pk=shiftMonth(key,-1), p=summarize(S.tx,pk);
@@ -1609,6 +1723,7 @@ function vKeuangan(){
    '<div class="seg" role="group" aria-label="Jenis transaksi"><button type="button" data-act="txtype" data-v="out" class="out'+(ui.txType==='out'?' on':'')+'" aria-pressed="'+(ui.txType==='out')+'">Pengeluaran</button><button type="button" data-act="txtype" data-v="in" class="in'+(ui.txType==='in'?' on':'')+'" aria-pressed="'+(ui.txType==='in')+'">Pemasukan</button></div>'+
    '<div class="inline-form" style="margin-top:12px"><div><label for="tx-amount">Nominal (Rp)</label><input type="text" id="tx-amount" inputmode="numeric" autocomplete="off" placeholder="mis. 25.000" required></div><div><label for="tx-cat">Kategori</label><select id="tx-cat">'+catOptions(ui.txType)+'</select></div><div><label for="tx-date">Tanggal</label><input type="date" id="tx-date" value="'+defDate+'" required></div><div class="grow"><label for="tx-note">Catatan (opsional)</label><input type="text" id="tx-note" maxlength="80" placeholder="mis. makan siang"></div><button class="btn" type="submit">'+ic('plus',16)+'Simpan</button></div><p class="msgline" id="tx-msg" role="status"></p></form>'+
   '<div class="card">'+h2b('Ringkasan '+esc(monthLabel(key)),'bulb','butter')+'<ul class="insights">'+ins.map(i=>'<li>'+badge(i.ic,'#FDF1DD','#C9762E',24)+'<span>'+esc(i.t)+'</span></li>').join('')+'</ul></div>'+
+  '<div class="pies">'+pieCard('in',key)+pieCard('out',key)+'</div>'+
   '<div style="display:flex;flex-direction:column;gap:22px"><div class="card">'+h2b('Pengeluaran per kategori','coin','coral')+''+
    (s.byCat.length?'<div class="bars">'+s.byCat.map(c=>'<div class="bar-row"><span>'+esc(c.cat)+'</span><div class="track"><div class="fill" style="width:'+Math.max(3,c.amount/maxCat*100)+'%" data-tip="'+esc(c.cat+' · '+rp(c.amount)+' ('+Math.round(c.amount/s.expense*100)+'%)')+'"></div></div><span class="amt">'+rp(c.amount)+' <span class="muted" style="font-weight:400">'+Math.round(c.amount/s.expense*100)+'%</span></span></div>').join('')+'</div>':'<p class="empty">Belum ada pengeluaran bulan ini.</p>')+'</div>'+
    '<div class="card">'+h2b('Tren 6 bulan','up','sky')+'<div class="legend"><span><i style="background:#2a78d6"></i>Pemasukan</span><span><i style="background:#eb6834"></i>Pengeluaran</span></div><div class="chartbox">'+trendSvg(tr)+'</div>'+
@@ -1678,18 +1793,46 @@ function viewDefault(){
 }
 
 /* ---------- Popover tanggal ---------- */
+let popOpener=null;
 function closePop(){ const p=document.getElementById('pop'); if(p) p.remove(); }
-function openDatePop(btn,id){
-  closePop(); const c=S.checks.find(x=>x.id===id); if(!c) return;
-  const t=todayDate(), dow=t.getDay(), sat=(6-dow+7)%7||7, mon=(1-dow+7)%7||7;
-  const opts=[['Hari ini',0],['Besok',1],['Akhir pekan',sat],['Minggu depan',mon]].map(o=>{ const d=addDays(t,o[1]); return '<button class="po" type="button" data-act="pop-date" data-id="'+esc(id)+'" data-v="'+ymd(d)+'">'+ic('cal',15)+o[0]+'<span class="pv">'+DAYS[d.getDay()].slice(0,3)+' '+d.getDate()+'</span></button>'; }).join('');
-  const p=document.createElement('div'); p.id='pop'; p.className='pop'; p.setAttribute('role','dialog'); p.setAttribute('aria-label','Pindahkan ke tanggal lain');
-  p.innerHTML=opts+'<button class="po" type="button" data-act="pop-date" data-id="'+esc(id)+'" data-v="">'+ic('x',15)+'Tanpa tanggal</button><div class="pd"><label for="pop-d" style="margin:0 0 3px;font-size:12px">Pilih tanggal</label><input type="date" id="pop-d" data-id="'+esc(id)+'" value="'+esc(tDate(c))+'"></div>';
+function popBox(btn,html,label){
+  closePop(); popOpener=btn;
+  const p=document.createElement('div'); p.id='pop'; p.className='pop'; p.setAttribute('role','dialog'); p.setAttribute('aria-label',label); p.innerHTML=html;
   document.body.appendChild(p);
   const r=btn.getBoundingClientRect(), w=p.offsetWidth, h=p.offsetHeight;
-  p.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';
+  p.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width>innerWidth/2?r.right-w:r.left))+'px';
   p.style.top=(r.bottom+h+8>innerHeight?Math.max(8,r.top-h-4):r.bottom+4)+'px';
   const f=p.querySelector('button'); if(f) f.focus();
+}
+function popTarget(id){ if(id==='@add') return ui.add?{add:true}:null; const c=S.checks.find(x=>x.id===id); return c?{c:c}:null; }
+function openDatePop(btn,id){
+  const tg=popTarget(id); if(!tg) return;
+  const cur=tg.add?addEff().date:tDate(tg.c);
+  const t=todayDate(), dow=t.getDay(), sat=(6-dow+7)%7||7, mon=(1-dow+7)%7||7;
+  const opts=[['Hari ini',0],['Besok',1],['Akhir pekan',sat],['Minggu depan',mon]].map(o=>{ const d=addDays(t,o[1]); return '<button class="po" type="button" data-act="pop-date" data-id="'+esc(id)+'" data-v="'+ymd(d)+'">'+ic('cal',15)+o[0]+'<span class="pv">'+DAYS[d.getDay()].slice(0,3)+' '+d.getDate()+'</span></button>'; }).join('');
+  popBox(btn,opts+'<button class="po" type="button" data-act="pop-date" data-id="'+esc(id)+'" data-v="">'+ic('x',15)+'Tanpa tanggal</button><div class="pd"><label for="pop-d" style="margin:0 0 3px;font-size:12px">Pilih tanggal</label><input type="date" id="pop-d" data-id="'+esc(id)+'" value="'+esc(cur)+'"></div>','Pilih tanggal');
+}
+function openPriPop(btn,id){
+  const tg=popTarget(id); if(!tg) return; const cur=tg.add?addEff().pri:tPri(tg.c);
+  popBox(btn,[1,2,3,4].map(n=>'<button class="po" type="button" data-act="pop-pri" data-id="'+esc(id)+'" data-v="'+n+'"><span class="fl p'+n+'">'+ic('flag',15)+'</span>Prioritas '+n+(n===4?' (biasa)':'')+(cur===n?'<span class="pv">'+ic('tick',13)+'</span>':'')+'</button>').join(''),'Pilih prioritas');
+}
+function openProjPop(btn,id){
+  const tg=popTarget(id); if(!tg) return; const cur=tg.add?addEff().proj:tProj(tg.c)?tProj(tg.c).id:'';
+  const row=(v,ico,name)=>'<button class="po" type="button" data-act="pop-proj" data-id="'+esc(id)+'" data-v="'+esc(v)+'">'+ic(ico,15)+'<span>'+esc(name)+'</span>'+(cur===v?'<span class="pv">'+ic('tick',13)+'</span>':'')+'</button>';
+  popBox(btn,row('','inbox',L.inbox)+S.goals.filter(g=>!g.done||g.id===cur).map(g=>row(g.id,'hash',g.title)).join(''),'Pilih project');
+}
+function addSet(key,val){
+  const a=ui.add; if(!a) return;
+  if(key==='date'){ a.f.date=val; a.f.dl=1; } else if(key==='pri'){ a.f.pri=val; a.f.pl=1; } else a.f.proj=val;
+  closePop(); a.focus=true; render();
+}
+function setField(id,key,val){
+  const c=S.checks.find(x=>x.id===id); if(!c) return;
+  const was=Object.prototype.hasOwnProperty.call(c,key)?c[key]:undefined;
+  if(key==='pri'){ if(val>=1&&val<=3) c.pri=val; else delete c.pri; } else { if(val) c.proj=val; else delete c.proj; }
+  save(); closePop(); render();
+  const g=key==='proj'&&val?S.goals.find(x=>x.id===val):null;
+  toast(key==='pri'?'Prioritas P'+(val>=1&&val<=3?val:4)+'.':'Dipindahkan ke '+(g?g.title:L.inbox)+'.',()=>{ if(was===undefined) delete c[key]; else c[key]=was; save(); render(); });
 }
 function setTaskDate(id,val,label){
   const c=S.checks.find(x=>x.id===id); if(!c) return; const was=c.date;
@@ -1766,10 +1909,10 @@ document.addEventListener('submit',async e=>{
     const ng={id:uid(),title:title,term:term,due:due,done:false,progress:0}; S.goals.push(ng); save(); $v('pmodal').hidden=true; location.hash='#p/'+encodeURIComponent(ng.id); render();
   }
   else if(kind==='tadd'){
-    const a=ui.add; if(!a) return; const inp=$v('ta-title'), q=parseQuick(inp.value);
+    const a=ui.add; if(!a) return; const inp=$v('ta-title'); a.text=inp.value; const e=addEff(), q=e.q;
     if(!q.title.trim()){ inp.focus(); return; }
-    const f=a.f, c={id:uid(),title:q.title.slice(0,90),date:q.date||f.date||'',done:false}, pri=q.pri||(+f.pri>=1&&+f.pri<=3?+f.pri:4);
-    if(pri<4) c.pri=pri; if(q.time) c.time=q.time; if(f.proj) c.proj=f.proj;
+    const c={id:uid(),title:q.title.slice(0,90),date:e.date,done:false};
+    if(e.pri<4) c.pri=e.pri; if(e.time) c.time=e.time; if(e.proj) c.proj=e.proj;
     S.checks.push(c); save(); a.text=''; a.f=Object.assign({date:'',pri:4,proj:''},a.def); a.focus=true; render();
   }
   else if(kind==='tx'){
@@ -1797,7 +1940,7 @@ document.addEventListener('submit',async e=>{
     const log=document.getElementById('chatlog'); log.innerHTML=chatHtml(); log.scrollTop=log.scrollHeight;
     const res=await breakdown(text);
     ui.thinking=false; ui.aiMode=res.mode;
-    if(res.tasks.length) ui.chat.push({role:'bot',text:'Ini pecahannya. Setujui untuk masuk ke Checklist:',proposal:res.tasks,status:'pending'});
+    if(res.tasks.length) ui.chat.push({role:'bot',text:'Ini pecahannya. Setujui untuk masuk ke Inbox:',proposal:res.tasks,status:'pending'});
     else ui.chat.push({role:'bot',text:'Aku belum bisa memecahnya. Coba tulis pekerjaannya dipisah koma, misalnya "baca paper, tulis laporan".'});
     { const l2=document.getElementById('chatlog'); if(l2){ l2.innerHTML=chatHtml(); l2.scrollTop=l2.scrollHeight; } const am=document.getElementById('aimode'); if(am) am.textContent=aiModeText(); }
   }
@@ -1807,7 +1950,7 @@ document.addEventListener('submit',async e=>{
 const appEl=()=>document.getElementById('app');
 const anyModal=()=>!!document.querySelector('.authmodal:not([hidden])');
 document.addEventListener('click',e=>{
-  if(!e.target.closest('#pop')&&!e.target.closest('[data-act="t-date"]')) closePop();
+  if(!e.target.closest('#pop')&&!e.target.closest('[data-pop]')) closePop();
   const el=e.target.closest('[data-act]'); if(!el) return;
   const act=el.dataset.act, id=el.dataset.id;
   if(act==='side-toggle'){
@@ -1831,7 +1974,18 @@ document.addEventListener('click',e=>{
   }
   else if(act==='ck-del'){ const i=S.checks.findIndex(x=>x.id===id); if(i>=0){ const gone=S.checks.splice(i,1)[0]; save(); render(); toast('Tugas dihapus.',()=>{ S.checks.push(gone); save(); render(); }); } }
   else if(act==='t-date') openDatePop(el,id);
-  else if(act==='pop-date') setTaskDate(id,el.dataset.v);
+  else if(act==='pop-date'){ if(id==='@add') addSet('date',el.dataset.v); else setTaskDate(id,el.dataset.v); }
+  else if(act==='rf-starter'){
+    const sg=reflSuggest().items[+el.dataset.i], ta=$v('rf-hambatan'); if(!sg||!sg.s||!ta) return;
+    const base=ta.value, v=((base&&!/\n$/.test(base)?base+'\n':base)+sg.s).slice(0,400);
+    ta.value=v; ui.draft.hambatan=v; ta.focus(); try{ ta.setSelectionRange(v.length,v.length); }catch(err){}
+  }
+  else if(act==='t-proj') openProjPop(el,id);
+  else if(act==='a-date') openDatePop(el,'@add');
+  else if(act==='a-pri') openPriPop(el,'@add');
+  else if(act==='a-proj') openProjPop(el,'@add');
+  else if(act==='pop-pri'){ if(id==='@add') addSet('pri',+el.dataset.v); else setField(id,'pri',+el.dataset.v); }
+  else if(act==='pop-proj'){ if(id==='@add') addSet('proj',el.dataset.v); else setField(id,'proj',el.dataset.v); }
   else if(act==='od-all'){
     const t=todayStr(), prev=[]; openTasks(c=>{ const d=tDate(c); return d&&d<t; }).forEach(c=>{ prev.push([c,c.date]); c.date=t; });
     if(prev.length){ save(); render(); toast(prev.length+' tugas dipindahkan ke hari ini.',()=>{ prev.forEach(x=>{ x[0].date=x[1]; }); save(); render(); }); }
@@ -1877,19 +2031,16 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target, id=t.id;
-  if(id==='ta-title'&&ui.add){ ui.add.text=t.value; const p=$v('ta-prev'); if(p) p.innerHTML=prevChips(t.value,ui.add.f); }
+  if(id==='ta-title'&&ui.add){ ui.add.text=t.value; const p=$v('ta-prev'); if(p) p.innerHTML=addChips(); }
   else if(id==='td-title'&&ui.dlg){ const o=dObj(); if(!o) return; if(ui.dlg.mode==='new'){ o.title=t.value; $v('td-prev').innerHTML=prevChips(t.value,o); } else if(t.value.trim()) dSet('title',t.value.slice(0,90)); }
   else if(id==='td-note'&&ui.dlg) dSet('note',t.value);
 });
 document.addEventListener('change',e=>{
   const t=e.target, id=t.id;
-  if(id==='ta-date'&&ui.add) ui.add.f.date=t.value;
-  else if(id==='ta-pri'&&ui.add) ui.add.f.pri=+t.value;
-  else if(id==='ta-proj'&&ui.add) ui.add.f.proj=t.value;
-  else if(id==='td-proj'&&ui.dlg) dSet('proj',t.value);
+  if(id==='td-proj'&&ui.dlg) dSet('proj',t.value);
   else if(id==='td-date'&&ui.dlg) dSet('date',t.value);
   else if(id==='td-time'&&ui.dlg) dSet('time',t.value);
-  else if(id==='pop-d'&&t.value) setTaskDate(t.dataset.id,t.value);
+  else if(id==='pop-d'&&t.value){ if(t.dataset.id==='@add') addSet('date',t.value); else setTaskDate(t.dataset.id,t.value); }
 });
 document.addEventListener('focusout',e=>{ const t=e.target; if(t&&t.id==='td-title'&&ui.dlg&&ui.dlg.mode==='edit'){ const o=dObj(); if(o&&!t.value.trim()) t.value=o.title; } });
 function trapTab(e){
@@ -1901,10 +2052,10 @@ function trapTab(e){
 document.addEventListener('keydown',e=>{
   const t=e.target;
   if(e.key==='Escape'){
-    if(document.getElementById('pop')){ closePop(); return; }
+    if(document.getElementById('pop')){ closePop(); const o=popOpener; if(o&&o.isConnected) o.focus(); else if(ui.add){ const i=$v('ta-title'); if(i) i.focus(); } return; }
     if(!$v('tmodal').hidden){ closeDlg(); return; }
     if(!$v('pmodal').hidden){ $v('pmodal').hidden=true; return; }
-    if(ui.add&&t.id==='ta-title'){ ui.add=null; render(); return; }
+    if(ui.add&&t.closest&&t.closest('.tform')){ ui.add=null; render(); return; }
     if(ui.ai&&isMobile()){ ui.ai=false; applyAi(); return; }
     if(appEl().classList.contains('drawer')) drawer(false);
     return;
