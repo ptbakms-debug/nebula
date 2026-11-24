@@ -161,6 +161,14 @@ textarea{min-height:72px;resize:vertical}
 .cbtn.set{background:var(--accent-soft);border-color:transparent;color:var(--accent-ink);font-weight:600}
 .cbtn.set.p1{color:var(--p1)} .cbtn.set.p2{color:var(--warn)} .cbtn.set.p3{color:var(--p3)}
 .pop .fl.p1{color:var(--p1)} .pop .fl.p2{color:var(--warn)} .pop .fl.p3{color:var(--p3)} .pop .fl.p4{color:var(--muted)}
+.ctxsel{border:1px solid var(--line);border-radius:8px;padding:6px 10px 8px;margin:6px 0;font-size:13px}
+.ctxsel legend{font-size:12px;font-weight:700;color:var(--muted);padding:0 4px}
+.ctxsel .rad{display:flex;gap:8px;align-items:center;padding:3px 0;font-weight:500;cursor:pointer}
+.ctxsel .rad input{width:auto;margin:0}
+.ctxprev summary{font-size:12.5px;color:var(--accent-ink);cursor:pointer;margin:2px 0}
+.ctxprev pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:var(--bg2,#f6f3ea);border-radius:8px;padding:8px;max-height:180px;overflow:auto;margin:4px 0}
+.rf-ai{border-top:1px solid var(--line);margin-top:10px;padding-top:10px}
+.rf-ai .out{background:var(--accent-tint);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.5}
 .rs-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .rs-list li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
 .rs-list li:last-child{border-bottom:0}
@@ -1392,7 +1400,7 @@ function autoSum(date){
 }
 
 /* ---------- UI state, rute, navigasi ---------- */
-const ui={open:(function(){ try{ return JSON.parse(localStorage.getItem('nebula-open')||'{}')||{}; }catch(e){ return {}; } })(),editId:null,add:null,dlg:null,plan:null,ai:false,month:monthKey(todayStr()),txType:'out',checkin:[],draft:{selesai:'',belum:'',hambatan:''},chat:[{role:'bot',text:'Ceritakan apa yang mau kamu selesaikan. Aku pecah jadi tugas, kamu setujui dulu sebelum masuk ke Inbox.'}],aiMode:null,aiWhy:'',thinking:false,csv:null};
+const ui={open:(function(){ try{ return JSON.parse(localStorage.getItem('nebula-open')||'{}')||{}; }catch(e){ return {}; } })(),editId:null,add:null,dlg:null,plan:null,ai:false,month:monthKey(todayStr()),txType:'out',checkin:[],draft:{selesai:'',belum:'',hambatan:''},chat:[{role:'bot',text:'Ceritakan apa yang mau kamu selesaikan, atau ajak aku berdiskusi: minta saran, atau tanya apa yang sebaiknya dikerjakan dulu. Tugas yang kuusulkan masuk ke Inbox setelah kamu setujui.'}],aiMode:null,aiWhy:'',rfAi:null,thinking:false,csv:null};
 function cur(){
   const h=(location.hash||'').replace(/^#\/?/,''), p=h.split('/'), a=p[0];
   if(a==='inbox'||a==='upcoming'||a==='refleksi'||a==='keuangan') return {name:a};
@@ -1459,14 +1467,20 @@ function chatHtml(){
     if(m.role==='me') return '<div class="msg me">'+esc(m.text)+'</div>';
     let h='<div class="msg bot">'+esc(m.text).replace(/\n/g,'<br>');
     if(m.proposal){
-      h+='<ol>'+m.proposal.map(p=>'<li>'+esc(p.title)+' <span class="muted">· '+esc(dayLabel(p.deadline))+'</span></li>').join('')+'</ol>';
+      h+='<ol>'+m.proposal.map(p=>'<li>'+esc(p.title)+' <span class="muted">· '+esc((p.deadline?dayLabel(p.deadline):'tanpa tanggal')+(p.time?' '+p.time:'')+(p.pri?' · P'+p.pri:''))+'</span></li>').join('')+'</ol>';
       if(m.status==='pending') h+='<div class="acts"><button class="btn small" type="button" data-act="ai-add" data-i="'+i+'">Tambahkan ke Inbox</button><button class="btn ghost small" type="button" data-act="ai-skip" data-i="'+i+'">Batal</button></div>';
       else h+='<div class="muted" style="font-size:13px">'+(m.status==='added'?'Sudah ditambahkan ke Inbox.':'Tidak ditambahkan.')+'</div>';
     }
     return h+'</div>';
-  }).join('')+(ui.thinking?'<div class="msg bot muted">Sedang memecah pekerjaanmu...</div>':'');
+  }).join('')+(ui.thinking?'<div class="msg bot muted">Sedang berpikir...</div>':'');
 }
-function aiModeText(){ const note=' Teks dikirim ke Google Gemini; jangan tulis data sensitif.'; return ui.aiMode==='ai'?'Mode: dipecah oleh AI (Google Gemini).'+note:ui.aiMode==='local'?(sb&&session?'Mode sederhana: AI tidak tersedia'+(ui.aiWhy?' (kode: '+ui.aiWhy+')':'')+', dipecah per koma, "dan", atau baris baru.':'Mode sederhana: masuk untuk memakai AI. Sementara dipecah per koma, "dan", atau baris baru.'):'Tugas juga bisa ditambah manual.'+(sb&&session?note:''); }
+function aiModeText(){
+  const lg=!!(sb&&session), lv=ctxLvl();
+  const sent=lv===2?'Teks, tugas, dan catatan refleksimu dikirim ke Google Gemini.':lv===1?'Teks dan tugasmu dikirim ke Google Gemini.':'Hanya teks yang kamu ketik dikirim ke Google Gemini.';
+  if(ui.aiMode==='ai') return 'Mode: diskusi dengan AI (Google Gemini). '+sent+' Jangan tulis data sensitif.';
+  if(ui.aiMode==='local') return lg?'Mode sederhana: AI tidak tersedia'+(ui.aiWhy?' (kode: '+ui.aiWhy+')':'')+'. Aku menjawab dengan aturan lokal dan memecah tugas per koma, "dan", atau baris baru.':'Mode sederhana: masuk untuk berdiskusi dengan AI. Sementara aku menjawab dengan aturan lokal dan memecah tugas per koma, "dan", atau baris baru.';
+  return lg?'Tanya saran atau tulis pekerjaan. '+sent:'Tanya saran atau tulis pekerjaan. Masuk untuk berdiskusi dengan AI.';
+}
 function cleanProposal(arr){
   if(!Array.isArray(arr)) return null;
   const out=arr.filter(x=>x&&typeof x.title==='string'&&x.title.trim()).slice(0,8).map(x=>({
@@ -1492,6 +1506,91 @@ async function breakdown(text){
   }
   ui.aiWhy=why;
   return {tasks:splitTasks(text,todayDate()),mode:'local'};
+}
+
+/* ---------- Diskusi dengan AI (opt-in) ---------- */
+const CTX_KEY='nebula-ai-ctx';
+function ctxLvl(){ try{ const v=localStorage.getItem(CTX_KEY); return v==='1'||v==='2'?+v:0; }catch(e){ return 0; } }
+function setCtxLvl(n){ try{ localStorage.setItem(CTX_KEY,String(n)); }catch(e){} }
+function buildCtx(level){
+  const t=todayStr(), c={tasks:[],refl:[],today:null};
+  if(level>=1){
+    const all=live(), open=all.filter(x=>!x.done).sort((a,b)=>tScore(b)-tScore(a)).slice(0,25), dn=all.filter(x=>x.done&&tDate(x)===t).slice(0,10);
+    open.concat(dn).forEach(x=>{ const g=tProj(x), p=tPri(x); c.tasks.push({t:String(x.title).slice(0,80),d:tDate(x)||'',tm:tTime(x)||'',p:p<4?p:0,x:!!x.done,pr:g?String(g.title).slice(0,40):''}); });
+    const td=all.filter(x=>tDate(x)===t);
+    c.today={selesai:td.filter(x=>x.done).length,total:td.length,terlambat:openTasks(x=>{ const d=tDate(x); return d&&d<t; }).length};
+  }
+  if(level>=2){
+    const keep=k=>(Array.isArray(k)?k:[]).filter(x=>FLAGS[x]);
+    const draft=String(ui.draft.hambatan||'').trim(), saved=S.refl.find(r=>r.date===t);
+    if(draft||ui.checkin.length) c.refl.push({d:t,n:draft.slice(0,400),k:keep(ui.checkin)});
+    else if(saved) c.refl.push({d:t,n:String(saved.hambatan||'').slice(0,400),k:keep(saved.checkin)});
+    S.refl.filter(r=>r.date<t).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).forEach(r=>c.refl.push({d:r.date,n:String(r.hambatan||'').slice(0,400),k:keep(r.checkin)}));
+  }
+  return c;
+}
+function ctxText(c){
+  const L2=[];
+  if(c.today) L2.push('Ringkasan hari ini: '+c.today.selesai+' dari '+c.today.total+' tugas selesai, '+c.today.terlambat+' terlambat.');
+  c.tasks.forEach(x=>L2.push('- '+x.t+(x.d?' | '+x.d:' | tanpa tanggal')+(x.tm?' '+x.tm:'')+(x.p?' | P'+x.p:'')+(x.pr?' | project '+x.pr:'')+(x.x?' | selesai':'')));
+  c.refl.forEach(r=>L2.push('Refleksi '+r.d+(r.k.length?' ['+r.k.map(k=>FLAGS[k]).join(', ')+']':'')+': '+(r.n||'(tanpa catatan)')));
+  return L2.length?L2.join('\n'):'(tidak ada selain pesan yang kamu ketik)';
+}
+function ctxCtl(){
+  if(!(sb&&session)) return '<p class="ai-note">Masuk untuk berdiskusi dengan AI.</p>';
+  const l=ctxLvl(), opts=[[0,'Hanya teks yang kuketik'],[1,'+ tugasku (judul, tanggal, prioritas)'],[2,'+ tugas dan catatan refleksiku']];
+  return '<fieldset class="ctxsel"><legend>Yang boleh dibaca Asisten saat berdiskusi</legend>'+opts.map(o=>'<label class="rad"><input type="radio" name="aictx" value="'+o[0]+'"'+(l===o[0]?' checked':'')+'>'+o[1]+'</label>').join('')+'</fieldset>'+
+   '<details class="ctxprev" data-key="ctxprev"'+(ui.open.ctxprev?' open':'')+'><summary>Lihat yang dikirim</summary><pre>'+esc(ctxText(buildCtx(l)))+'</pre></details>'+
+   '<p class="ai-note">Lewat server NEBULA ke Google Gemini, tidak disimpan NEBULA, tanpa data keuangan. Bergantung paket API yang dipakai pengelola, Google dapat memakai teks ini untuk mengembangkan produknya dan peninjau manusia dapat membacanya.</p>';
+}
+async function assist(mode,messages,level){
+  if(!(sb&&session)) throw new Error('belum_masuk');
+  const cur=await sb.auth.getSession(), tok=cur&&cur.data&&cur.data.session?cur.data.session.access_token:null;
+  if(!tok) throw new Error('sesi_tidak_ada');
+  const ac=new AbortController(), to=setTimeout(()=>ac.abort(),15000); let r;
+  try{ r=await fetch('/.netlify/functions/assistant',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({mode:mode,today:todayStr(),messages:messages,context:buildCtx(level)}),signal:ac.signal}); }
+  catch(e){ throw new Error(e&&e.name==='AbortError'?'timeout_15_detik':'jaringan'); }
+  finally{ clearTimeout(to); }
+  if(r.status===429){ const er=new Error('kuota_harian'); er.quota=true; throw er; }
+  if(!r.ok){ let j=null; try{ j=await r.json(); }catch(e){} throw new Error((j&&typeof j.error==='string'&&/^[a-z_]{3,30}$/.test(j.error))?j.error:'http_'+r.status); }
+  let j; try{ j=await r.json(); }catch(e){ throw new Error('format_tidak_valid'); }
+  if(!j||typeof j.reply!=='string'||!j.reply.trim()) throw new Error('format_tidak_valid');
+  const tasks=(Array.isArray(j.tasks)?j.tasks:[]).filter(x=>x&&typeof x.title==='string'&&x.title.trim()).slice(0,5).map(x=>({
+    title:x.title.trim().slice(0,90),
+    deadline:(typeof x.date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date))?x.date:'',
+    time:(typeof x.time==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(x.time))?x.time:'',
+    pri:(x.pri===1||x.pri===2||x.pri===3)?x.pri:0
+  }));
+  return {reply:j.reply.trim().slice(0,1500),tasks:tasks};
+}
+function chatHist(){
+  return ui.chat.slice(1).filter(m=>m.text).slice(-8).map(m=>({role:m.role==='me'?'user':'model',text:String(m.text).slice(0,500)}));
+}
+function pushTasks(list,defDate){
+  list.forEach(p=>{ const c={id:uid(),date:p.deadline||defDate||'',title:p.title,done:false}; if(p.time) c.time=p.time; if(p.pri) c.pri=p.pri; S.checks.push(c); });
+  save(); return list.length;
+}
+/* Jawaban lokal (tanpa jaringan) untuk pertanyaan, supaya pertanyaan tidak dipotong menjadi "tugas". */
+function localReply(text){
+  const low=String(text).toLowerCase().trim();
+  const isQ=/\?\s*$/.test(low)||/^(apa|apakah|bagaimana|gimana|kenapa|mengapa|kapan|mana|siapa|berapa|tolong|bisa|boleh|menurutmu|saran|sarankan|rekomendasi)\b/.test(low)||/\b(saranmu|sarankan|menurutmu|rekomendasi)\b/.test(low);
+  if(!isQ) return null;
+  const t=todayStr(), open=openTasks();
+  if(/\b(refleksi|evaluasi|hariku|capek|lelah|stres|pusing|tidur|keuangan|uang)\b/.test(low)){
+    const rs=reflSuggest();
+    return 'Saran refleksi hari ini (aturan lokal):\n'+rs.items.slice(0,3).map(i=>'• '+i.t).join('\n')+'\nTulis di halaman Refleksi. Untuk diskusi yang membaca catatanmu, masuk lalu pilih konteks di bawah.';
+  }
+  if(/\b(jadwal|jadwalkan|susun|atur|aturkan)\b/.test(low)) return 'Tekan "Susun jadwal hari ini" di bagian Jadwal hari ini (di atas). Aku urutkan berdasarkan prioritas dan tenggat, kamu setujui dulu.';
+  if(/\b(terlambat|telat|tertunda|nunggak)\b/.test(low)){
+    const ov=sortTasks(open.filter(c=>{ const d=tDate(c); return d&&d<t; })).slice(0,4);
+    return ov.length?'Tugas terlambat:\n'+ov.map(c=>'• '+c.title+' ('+tWhy(c)+')').join('\n')+'\nPindahkan ke hari ini lewat bagian Berpotensi tertunda, atau hapus yang sudah tidak relevan.':'Tidak ada tugas yang terlambat.';
+  }
+  if(/\b(dulu|dahulu|prioritas|fokus|(di)?mulai|kerjakan|ngerjain|mengerjakan|bingung)/.test(low)){
+    const f=open.filter(c=>{ const d=tDate(c); return (d&&d<=t)||tPri(c)<=2; }).sort((a,b)=>tScore(b)-tScore(a)).slice(0,3);
+    const l=f.length?f:open.sort((a,b)=>tScore(b)-tScore(a)).slice(0,3);
+    return l.length?'Mulai dari:\n'+l.map(c=>'• '+c.title+' ('+tWhy(c)+')').join('\n'):'Belum ada tugas. Tulis pekerjaanmu di sini, nanti kupecah jadi tugas.';
+  }
+  return 'Dalam mode lokal aku bisa menjawab: apa yang dikerjakan dulu, tugas terlambat, jadwal hari ini, dan saran refleksi. Untuk diskusi bebas, masuk dan pilih konteks di bawah.';
 }
 
 /* ---------- Asisten (saran dihitung di browser; hanya teks percakapan yang dikirim ke Gemini) ---------- */
@@ -1587,7 +1686,20 @@ function reflSugCard(){
   const r=reflSuggest();
   return '<div class="card" id="rf-sug">'+h2b('Saran untuk refleksi hari ini','spark','lilac')+(r.saved?'<p class="muted" style="margin:0 0 6px">Refleksi hari ini sudah tersimpan. Kamu bisa memperbaruinya.</p>':r.late?'<p class="muted" style="margin:0 0 6px">Sudah sore, saat yang pas untuk menulis.</p>':'')+
    '<ul class="rs-list">'+r.items.map((i,n)=>'<li><span class="ri">'+ic(i.ic,16)+'</span><span class="tx">'+esc(i.t)+'</span>'+(i.s?'<button class="btn ghost small" type="button" data-act="rf-starter" data-i="'+n+'">Tulis</button>':'')+(i.link?'<a class="btn ghost small" href="'+i.link+'">'+esc(i.linkTxt)+'</a>':'')+'</li>').join('')+'</ul>'+
-   '<p class="ai-note" style="margin:8px 0 0">Disusun di perangkatmu dari tugas, check-in, dan keuangan dengan aturan sederhana. Tidak ada yang dikirim ke AI online.</p></div>';
+   '<p class="ai-note" style="margin:8px 0 0">Daftar di atas disusun di perangkatmu dari tugas, check-in, dan keuangan dengan aturan sederhana. Tidak ada yang dikirim ke AI online.</p>'+rfAiBlock()+'</div>';
+}
+function rfAiBlock(){
+  const a=ui.rfAi, today=todayStr(), cur=a&&a.date===today?a:null, lg=!!(sb&&session);
+  let h='<div class="rf-ai"><b style="font-size:14px">Saran dari AI untuk hari ini</b>';
+  if(!lg) return h+'<p class="ai-note" style="margin:4px 0 0">Masuk untuk meminta saran yang membaca tugas dan catatanmu.</p></div>';
+  const busy=cur&&cur.status==='loading';
+  h+='<div class="ai-note" style="margin:4px 0 8px">Mengirim ke Google Gemini: tugasmu dan catatan refleksi (yang sedang kamu tulis dan 3 hari terakhir). Tanpa data keuangan. <details class="ctxprev" data-key="rfprev"'+(ui.open.rfprev?' open':'')+' style="display:inline"><summary style="display:inline">Lihat yang dikirim</summary><pre>'+esc(ctxText(buildCtx(2)))+'</pre></details></div>';
+  h+='<button class="btn small" type="button" data-act="rf-ai"'+(busy?' disabled':'')+'>'+ic('spark',15)+(busy?'Menyusun saran...':cur&&cur.status==='done'?'Minta saran lagi':'Minta saran AI')+'</button>';
+  if(cur&&cur.status==='err') h+='<p class="msgline err" role="status" style="margin-top:8px">Saran AI belum bisa dibuat (kode: '+esc(cur.why)+'). Daftar saran lokal di atas tetap bisa dipakai.</p>';
+  if(cur&&cur.status==='done'){
+    h+='<div class="out" role="status">'+esc(cur.reply).replace(/\n/g,'<br>')+(cur.tasks.length?'<ol style="margin:8px 0 0 18px;padding:0">'+cur.tasks.map(x=>'<li>'+esc(x.title)+'</li>').join('')+'</ol><div style="margin-top:8px"><button class="btn ghost small" type="button" data-act="rf-ai-add">Tambahkan langkah ke Inbox (besok)</button></div>':'')+'</div><p class="ai-note" style="margin:6px 0 0">'+(S.refl.find(r=>r.date===today)?'Saran ini tersimpan bersama refleksi hari ini.':'Saran ini ikut tersimpan saat kamu menekan Simpan refleksi.')+'</p>';
+  }
+  return h+'</div>';
 }
 function aiEval(){
   const t=todayStr(), from=ymd(addDays(todayDate(),-6)), all=live();
@@ -1602,13 +1714,15 @@ function aiEval(){
 }
 function aiShell(){
   return '<div class="ai-h"><span class="hico">'+ic('spark',16)+'</span><b>Asisten</b><button class="icon-btn" type="button" data-act="ai-close" aria-label="Tutup panel asisten">'+ic('x',16)+'</button></div>'+
-   '<div class="ai-b" id="ai-b"><div id="ai-ctx"></div><div class="aisec"><h3>'+ic('chat',13)+'Percakapan · Fokus AI</h3><p class="mode" id="aimode">'+esc(aiModeText())+'</p><div class="chat" id="chatlog" aria-live="polite">'+chatHtml()+'</div></div></div>'+
-   '<form class="chatbar" data-form="chat"><label for="chat-in" class="sr">Pesan</label><input type="text" id="chat-in" maxlength="400" autocomplete="off" placeholder="mis. baca 3 paper, bikin laporan, presentasi besok"><button class="btn" type="submit" aria-label="Kirim">'+ic('send',16)+'</button></form>';
+   '<div class="ai-b" id="ai-b"><div id="ai-ctx"></div><div class="aisec"><h3>'+ic('chat',13)+'Percakapan · Fokus AI</h3><p class="mode" id="aimode">'+esc(aiModeText())+'</p><div id="aictx"></div><div class="chat" id="chatlog" aria-live="polite">'+chatHtml()+'</div></div></div>'+
+   '<form class="chatbar" data-form="chat"><label for="chat-in" class="sr">Pesan</label><input type="text" id="chat-in" maxlength="400" autocomplete="off" placeholder="Tulis tugas, atau tanya saran"><button class="btn" type="submit" aria-label="Kirim">'+ic('send',16)+'</button></form>';
 }
 function renderAi(){
   const el=document.getElementById('ai'); if(!el||!ui.ai) return;
   if(!el.dataset.built){ el.innerHTML=aiShell(); el.dataset.built='1'; }
   const c=document.getElementById('ai-ctx'); if(c) c.innerHTML=aiCtx();
+  const k=document.getElementById('aictx'); if(k&&!k.contains(document.activeElement)){ k.innerHTML=ctxCtl(); }
+  const am=document.getElementById('aimode'); if(am) am.textContent=aiModeText();
 }
 function applyAi(){
   const el=document.getElementById('ai'); el.hidden=!ui.ai;
@@ -1643,7 +1757,7 @@ function vRefleksi(){
     '<p class="muted" style="font-size:12px;margin:10px 0 0">Ringkasan tiga studi, bukan nasihat medis. Semuanya korelasi atau bukti belum cukup. Check-in hanya untuk melihat pola datamu sendiri.</p></div>'+
    '<div style="margin-top:16px"><button class="btn" type="submit">Simpan refleksi '+ic('right',16)+'</button></div><p class="msgline" id="rf-msg" role="status"></p></form>'+
   '<div class="card">'+h2b('Pola produktivitas','bulb','butter')+pat+'</div>'+
-  '<div>'+h2b('Riwayat refleksi','tasks','lilac')+(hist.length?'<ul class="list">'+hist.map(r=>'<li class="row-card" style="align-items:flex-start;flex-direction:column;gap:6px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b>'+esc(dayLabel(r.date))+'</b>'+r.checkin.map(k=>'<span class="chip static k-'+esc(k)+'">'+esc(FLAGS[k]||k)+'</span>').join('')+'</div><div style="font-size:14px"><span class="muted">Selesai:</span> '+esc(reflText(r).selesai||'-')+'<br><span class="muted">Belum:</span> '+esc(reflText(r).belum||'-')+'<br><span class="muted">Catatan:</span> '+esc(r.hambatan||'-')+'</div></li>').join('')+'</ul>':'<div class="card empty">Belum ada refleksi.</div>')+'</div></div>';
+  '<div>'+h2b('Riwayat refleksi','tasks','lilac')+(hist.length?'<ul class="list">'+hist.map(r=>'<li class="row-card" style="align-items:flex-start;flex-direction:column;gap:6px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b>'+esc(dayLabel(r.date))+'</b>'+r.checkin.map(k=>'<span class="chip static k-'+esc(k)+'">'+esc(FLAGS[k]||k)+'</span>').join('')+'</div><div style="font-size:14px"><span class="muted">Selesai:</span> '+esc(reflText(r).selesai||'-')+'<br><span class="muted">Belum:</span> '+esc(reflText(r).belum||'-')+'<br><span class="muted">Catatan:</span> '+esc(r.hambatan||'-')+(r.saran?'<br><span class="muted">Saran AI:</span> '+esc(String(r.saran).slice(0,1500)).replace(/\n/g,'<br>'):'')+'</div></li>').join('')+'</ul>':'<div class="card empty">Belum ada refleksi.</div>')+'</div></div>';
 }
 
 /* ---------- Keuangan ---------- */
@@ -1881,7 +1995,7 @@ document.addEventListener('click',async e=>{
   }
   else if(act==='ai-add'){
     const m=ui.chat[+el.dataset.i];
-    if(m&&m.proposal&&m.status==='pending'){ m.proposal.forEach(p=>S.checks.push({id:uid(),date:p.deadline,title:p.title,done:false})); m.status='added'; save(); document.getElementById('chatlog').innerHTML=chatHtml(); render(); toast(m.proposal.length+' tugas ditambahkan ke '+L.inbox+'.'); }
+    if(m&&m.proposal&&m.status==='pending'){ pushTasks(m.proposal,''); m.status='added'; document.getElementById('chatlog').innerHTML=chatHtml(); render(); toast(m.proposal.length+' tugas ditambahkan ke '+L.inbox+'.'); }
   }
   else if(act==='ai-skip'){ const m=ui.chat[+el.dataset.i]; if(m){ m.status='skipped'; document.getElementById('chatlog').innerHTML=chatHtml(); } }
 });
@@ -1927,6 +2041,7 @@ document.addEventListener('submit',async e=>{
   }
   else if(kind==='refl'){
     const date=todayStr(), cs=S.checks.filter(c=>c.date===date&&c.title.trim()), entry={date:date,selesai:cs.filter(c=>c.done).map(c=>c.title).join('; '),belum:cs.filter(c=>!c.done).map(c=>c.title).join('; '),hambatan:ui.draft.hambatan.trim(),checkin:ui.checkin.slice()};
+    { const prev=S.refl.find(r=>r.date===date), sr=(ui.rfAi&&ui.rfAi.status==='done'&&ui.rfAi.date===date)?ui.rfAi.reply:(prev&&prev.saran?prev.saran:''); if(sr) entry.saran=String(sr).slice(0,1500); }
     const msg=document.getElementById('rf-msg');
     if(!entry.selesai&&!entry.belum&&!entry.hambatan&&!entry.checkin.length){ msg.className='msgline err'; msg.textContent='Isi hambatan, tandai check-in, atau buat checklist hari ini dulu.'; return; }
     const i=S.refl.findIndex(r=>r.date===date); if(i>=0) S.refl[i]=entry; else S.refl.push(entry);
@@ -1938,10 +2053,30 @@ document.addEventListener('submit',async e=>{
     if(!text||ui.thinking) return;
     inp.value=''; ui.chat.push({role:'me',text:text}); ui.thinking=true;
     const log=document.getElementById('chatlog'); log.innerHTML=chatHtml(); log.scrollTop=log.scrollHeight;
-    const res=await breakdown(text);
-    ui.thinking=false; ui.aiMode=res.mode;
-    if(res.tasks.length) ui.chat.push({role:'bot',text:'Ini pecahannya. Setujui untuk masuk ke Inbox:',proposal:res.tasks,status:'pending'});
-    else ui.chat.push({role:'bot',text:'Aku belum bisa memecahnya. Coba tulis pekerjaannya dipisah koma, misalnya "baca paper, tulis laporan".'});
+    let bot=null, mode='local', why='';
+    if(sb&&session){
+      try{
+        const r=await assist('chat',chatHist(),ctxLvl());
+        bot={role:'bot',text:r.reply}; if(r.tasks.length){ bot.proposal=r.tasks; bot.status='pending'; }
+        mode='ai'; ui.aiWhy='';
+      }catch(er){
+        why=er&&er.message||'gagal';
+        if(er&&er.quota) toast('Batas penggunaan AI hari ini sudah habis. Aku menjawab dengan aturan sederhana.');
+        if(why==='http_404'){ /* fungsi assistant belum terpasang: pakai pemecah lama */
+          const b2=await breakdown(text);
+          if(b2.mode==='ai'){ mode='ai'; why=''; if(b2.tasks.length) bot={role:'bot',text:'Ini pecahannya. Setujui untuk masuk ke Inbox:',proposal:b2.tasks,status:'pending'}; }
+          else why=ui.aiWhy||why;
+        }
+      }
+    }
+    if(!bot&&mode==='local'){
+      ui.aiWhy=why;
+      const lr=localReply(text);
+      if(lr) bot={role:'bot',text:lr};
+      else { const tk=splitTasks(text,todayDate()); bot=tk.length?{role:'bot',text:'Ini pecahannya. Setujui untuk masuk ke Inbox:',proposal:tk,status:'pending'}:{role:'bot',text:'Aku belum bisa memecahnya. Coba tulis pekerjaannya dipisah koma, misalnya "baca paper, tulis laporan".'}; }
+    }
+    ui.thinking=false; ui.aiMode=mode;
+    if(bot) ui.chat.push(bot);
     { const l2=document.getElementById('chatlog'); if(l2){ l2.innerHTML=chatHtml(); l2.scrollTop=l2.scrollHeight; } const am=document.getElementById('aimode'); if(am) am.textContent=aiModeText(); }
   }
 });
@@ -1949,7 +2084,7 @@ document.addEventListener('submit',async e=>{
 /* ---------- Aksi tugas, project, panel ---------- */
 const appEl=()=>document.getElementById('app');
 const anyModal=()=>!!document.querySelector('.authmodal:not([hidden])');
-document.addEventListener('click',e=>{
+document.addEventListener('click',async e=>{
   if(!e.target.closest('#pop')&&!e.target.closest('[data-pop]')) closePop();
   const el=e.target.closest('[data-act]'); if(!el) return;
   const act=el.dataset.act, id=el.dataset.id;
@@ -1975,6 +2110,19 @@ document.addEventListener('click',e=>{
   else if(act==='ck-del'){ const i=S.checks.findIndex(x=>x.id===id); if(i>=0){ const gone=S.checks.splice(i,1)[0]; save(); render(); toast('Tugas dihapus.',()=>{ S.checks.push(gone); save(); render(); }); } }
   else if(act==='t-date') openDatePop(el,id);
   else if(act==='pop-date'){ if(id==='@add') addSet('date',el.dataset.v); else setTaskDate(id,el.dataset.v); }
+  else if(act==='rf-ai'){
+    const day=todayStr(); ui.rfAi={status:'loading',date:day}; render();
+    try{
+      const r=await assist('reflect',[],2);
+      ui.rfAi={status:'done',date:day,reply:r.reply,tasks:r.tasks};
+      const en=S.refl.find(x=>x.date===day); if(en){ en.saran=r.reply; save(); }
+    }catch(er){ ui.rfAi={status:'err',date:day,why:er&&er.message||'gagal'}; if(er&&er.quota) toast('Batas penggunaan AI hari ini sudah habis.'); }
+    render();
+  }
+  else if(act==='rf-ai-add'){
+    const a=ui.rfAi; if(!a||a.status!=='done'||!a.tasks.length) return;
+    const n=pushTasks(a.tasks,ymd(addDays(todayDate(),1))); a.tasks=[]; render(); toast(n+' langkah ditambahkan ke '+L.inbox+'.');
+  }
   else if(act==='rf-starter'){
     const sg=reflSuggest().items[+el.dataset.i], ta=$v('rf-hambatan'); if(!sg||!sg.s||!ta) return;
     const base=ta.value, v=((base&&!/\n$/.test(base)?base+'\n':base)+sg.s).slice(0,400);
@@ -2037,7 +2185,8 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
   const t=e.target, id=t.id;
-  if(id==='td-proj'&&ui.dlg) dSet('proj',t.value);
+  if(t.name==='aictx'){ setCtxLvl(+t.value); const k=$v('aictx'); if(k) k.innerHTML=ctxCtl(); const am=$v('aimode'); if(am) am.textContent=aiModeText(); const f=k&&k.querySelector('input:checked'); if(f) f.focus(); }
+  else if(id==='td-proj'&&ui.dlg) dSet('proj',t.value);
   else if(id==='td-date'&&ui.dlg) dSet('date',t.value);
   else if(id==='td-time'&&ui.dlg) dSet('time',t.value);
   else if(id==='pop-d'&&t.value){ if(t.dataset.id==='@add') addSet('date',t.value); else setTaskDate(t.dataset.id,t.value); }
